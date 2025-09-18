@@ -44,11 +44,19 @@ public class Authenticator {
     }
 
     public boolean autorize(Key asker, int target) {
-        Key target_key = get(Long.valueOf(target));
-        if (asker.getLevel() > target_key.getLevel() || asker.getId() == target_key.getId()) {
-            return true;
-        } else {
-            return false;
+        try {
+            Key target_key = get(Long.valueOf(target));
+            System.out.println(asker.getId() + " is asking for " + target);
+            System.out.println("asker level: " + asker.getLevel() + " target level: " + target_key.getLevel());
+            if (target_key.getKey() == null) {
+                return false;
+            }else if (asker.getLevel() > target_key.getLevel() || asker.getId() == target_key.getId()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("key not logged or database error", e);
         }
     }
 

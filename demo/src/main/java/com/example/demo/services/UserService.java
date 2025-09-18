@@ -2,17 +2,17 @@ package com.example.demo.services;
 
 import java.sql.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import com.example.demo.entities.Key;
 import com.example.demo.entities.User;
-
+import com.example.demo.controllers.LoginControler;
 @Service
 public class UserService {
     // DB connection constants
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
     private static final String DB_USER = "main";
     private static final String DB_PASSWORD = "18410209";
-
     public User getUser(String name) {
     String sql = "SELECT id, username, password FROM public.\"user\" WHERE username = ?";
     User user = new User();
@@ -79,7 +79,7 @@ public class UserService {
         return null;
     }
 
-    public boolean setUser(User user) {
+    public String setUser(User user) {
         String insertSQL = "INSERT INTO public.\"user\" (username, password) VALUES (?, ?)";
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -89,6 +89,7 @@ public class UserService {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, user.getPassword());
 
+
             // Execute the insert
             int rowsInserted = pstmt.executeUpdate();
             System.out.println("Rows inserted: " + rowsInserted);
@@ -96,7 +97,7 @@ public class UserService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return true;
+        return null;
     }
 
     public boolean deleteUser(int id) {

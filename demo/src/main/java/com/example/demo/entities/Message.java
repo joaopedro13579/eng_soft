@@ -4,11 +4,17 @@ import java.util.List;
 
 public class Message {
     private String text;
+    private String type;
     private Long id;
     private Long userId;
     private Long projectId;
     List<User> participant;
-
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
     // Getter and Setter
     public String getText() {
         return text;
@@ -53,7 +59,10 @@ public class Message {
     public List<User> getParticipant() {
         return participant;
     }
-    public void setParticipant(User participant) {
+    public void addParticipant(User participant) {
         this.participant.add(participant);
+    }
+    public void setParticipant(List<User> participant) {
+        this.participant = participant;
     }
 }

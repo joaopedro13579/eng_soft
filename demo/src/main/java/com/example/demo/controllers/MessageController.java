@@ -20,14 +20,10 @@ public class MessageController {
     private Authenticator authenticator;
 
     @GetMapping("/{id}")
-    public Message getMessage(@PathVariable int id, @RequestHeader("Auth") String token) {
+    public Message getMessage(@PathVariable int id, @RequestHeader("Authorization") String token) {
         try {
             Message message = messageService.getMessage(id);
-            if (authenticator.autorize(token, message)) {
-                return message;
-            } else {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-            }
+            return message;
         } catch (Exception e) {
             throw new RuntimeException("Database error", e);
 

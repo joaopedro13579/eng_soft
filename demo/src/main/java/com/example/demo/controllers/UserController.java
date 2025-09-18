@@ -53,7 +53,7 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public boolean createUser(@RequestBody User user) {
+    public String createUser(@RequestBody User user) {
         return userService.setUser(user);
     }
 
@@ -77,7 +77,7 @@ public class UserController {
     }
 
     @PutMapping("/password/{id}")
-    public boolean updatePassword(@RequestParam("Authorization") String token, @RequestBody String Password,
+    public boolean updatePassword(@RequestParam("Authorization") String token, @RequestBody User Password,
             @PathVariable int id) {
         Key key;
         try {
@@ -86,7 +86,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "app not logged");
         }
         if (authenticator.autorize(key, id)) {
-            return userService.updateUser(id, Password);
+            return userService.updateUser(id, Password.getPassword());
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }

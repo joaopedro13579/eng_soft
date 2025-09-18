@@ -4,6 +4,9 @@ public class Key {
     private String key;
     private Long id ;
     private int level=1;
+    public Key() {
+        level=1;
+    }
     public int getLevel() {
         return level;
     }
