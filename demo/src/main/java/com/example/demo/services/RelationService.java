@@ -158,23 +158,22 @@ public class RelationService {
         return list;
     }
 
-    public MessageUser getbyboth(Long message,Long user){
+    public MessageUser getbyboth(Long message, Long user) {
         String sql = "SELECT FROM public.usermessage WHERE user_id = ? AND message_id = ?";
-        try {Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-                PreparedStatement stmt = conn.prepareStatement(sql); {
-                MessageUser mu;
-                stmt.setLong(1, user);
-                stmt.setLong(2, message);
-                ResultSet rs = stmt.executeQuery();
-                mu.setUserId(rs.getLong("user_id"));
-                mu.setMessageId(rs.getLong("message_id"));
-                return mu;
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            // TODO: handle exception
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            MessageUser mu=new MessageUser();
+            stmt.setLong(1, user);
+            stmt.setLong(2, message);
+            ResultSet rs = stmt.executeQuery();
+            mu.setUserId(rs.getLong("user_id"));
+            mu.setMessageId(rs.getLong("message_id"));
+            return mu;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     public List<MessageUser> getUserByMessage(long messageId) {

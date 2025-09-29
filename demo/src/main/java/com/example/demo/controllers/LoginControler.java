@@ -19,6 +19,9 @@ public class LoginControler {
 
     @PostMapping("/")
     public Key login(@RequestBody User user) {
+        if(autenticator.get((userService.getUser(user.getUsername())).getId()).getKey()!=null){
+            return autenticator.get((userService.getUser(user.getUsername())).getId());
+        }
         Key key = new Key();
         key.setId(userService.getUser(user.getUsername()).getId());
         String rc = user.getPassword().trim();

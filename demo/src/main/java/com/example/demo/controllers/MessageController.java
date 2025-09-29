@@ -1,8 +1,10 @@
 package com.example.demo.controllers;
 
-import com.example.demo.entities.Message;
+import com.example.demo.entities.*;
 import com.example.demo.authenticators.Authenticator;
 import com.example.demo.services.MessageService;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -58,7 +60,21 @@ public class MessageController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
     }
+    @PutMapping("/participants/{id}")
+    public boolean changeParticipant(@PathVariable int id, @RequestBody List<MessageUser> participants,
+            @RequestHeader("Authorization") String token) {
+        Message currentMessage = messageService.getMessage(id);
+        if (authenticator.autorize(token, currentMessage)) {
+            try {
+                return messageService.updateparticipants(participants);
+            } catch (Exception e) {
+                throw new RuntimeException("Database error", e);
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
 
+    }
     @DeleteMapping("/{id}")
     public boolean deleteMessage(@PathVariable int id, @RequestHeader("Auth") String token) {
         Message message = messageService.getMessage(id);
@@ -68,4 +84,5 @@ public class MessageController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
     }
+
 }
