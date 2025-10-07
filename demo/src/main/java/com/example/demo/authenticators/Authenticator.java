@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import com.example.demo.services.ProjectService;
 import com.example.demo.services.UserService;
-import com.example.demo.controllers.ProjectControler;
+import com.example.demo.controllers.ProjectController;
 import com.example.demo.entities.*;
 import com.example.demo.services.ProjectService;
 
@@ -87,7 +87,16 @@ public class Authenticator {
 
     public boolean autorize(String token, Message message) {
         try {
+
             Key key = get(token);
+            System.out.println(key.getId() + " is asking for " + message.getId());
+            if (key.getLevel() > 3 || key.getId() == message.getUserId()) {
+                return true;
+                
+            }
+            if (key==null){
+                return false;
+            }
             User user = message.getParticipant(key.getId());
             if (user != null) {
                 return true;

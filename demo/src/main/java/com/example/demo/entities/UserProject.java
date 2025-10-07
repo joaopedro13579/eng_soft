@@ -1,8 +1,8 @@
 package com.example.demo.entities;
 
 public class UserProject {
-    private long user;
-    private long project;
+    private Long user;
+    private Long project;
     // Getter and Setter
     public long getUser() {
         return user;  }

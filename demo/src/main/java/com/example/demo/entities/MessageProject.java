@@ -1,8 +1,8 @@
 package com.example.demo.entities;
 
 public class MessageProject {
-    private long message;
-    private long project;
+    private Long message;
+    private Long project;
     // Getter and Setter
     public long getMessage() {
         return message;  }

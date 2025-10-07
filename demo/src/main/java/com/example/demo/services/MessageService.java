@@ -82,7 +82,7 @@ public class MessageService {
                 return null;
             }
             List<User> participant = content.getParticipant();
-            MessageUser mu = new MessageUser();
+            MessageUser mu = new MessageUser((long)0,(long)0);
             for (User user : participant) {
                 System.out.println(user.getId());
                 mu.setMessageId(message.getId());
@@ -121,8 +121,9 @@ public class MessageService {
             try {
                 for (MessageUser mu : rel) {
                     relationService.deleteUserMessage((long) 0, (long) mu.getMessageId());
-                    return true;
+                    
                 }
+                return true;
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -134,23 +135,46 @@ public class MessageService {
     }
 
     public boolean updateMessage(int id, Message content) {
-        String sql = "UPDATE public.message SET content = ? WHERE id = ?";
-
+    String sql = "UPDATE public.message SET message = ?, creator= ? ,type = ? WHERE id = ?";
         try (
                 Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, content.getText());
-            stmt.setInt(2, id);
+            stmt.setLong(2, content.getUserId());
+            stmt.setString(3, content.getType());
+            stmt.setInt(4, id);
             int rowsAffected = stmt.executeUpdate();
 
             if (rowsAffected > 0) {
                 System.out.println("Message with ID " + id + " updated successfully.");
-                return true;
             } else {
                 System.out.println("No message found with ID " + id + ". Update failed.");
                 return false;
             }
-
+            System.out.println("updating participants");
+            List<User> participant = content.getParticipant();
+            MessageUser mu = new MessageUser((long)0,(long)0);
+            List<MessageUser> old=relationService.getUserByMessage(id);
+            boolean flag=false;
+            for (User user : participant) {
+                for (MessageUser m : old) {
+                    if (m.getUserId()==user.getId()){
+                        relationService.deleteUserMessage(m.getUserId(),m.getMessageId());
+                        flag=true;
+                    }
+                }
+                if (!flag){
+                    mu.setMessageId((long)id);
+                    mu.setUserId(user.getId());
+                    try {
+                        relationService.setMessageUser(mu);
+                    } catch (Exception e) {
+                        System.out.println(e + "," + mu.getUserId() + "," + mu.getMessageId());
+                    }
+                }
+                flag=false;
+            }
+            return true;
         } catch (SQLException e) {
             System.err.println("Database error: " + e.getMessage());
             return false;

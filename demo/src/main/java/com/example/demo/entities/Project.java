@@ -26,8 +26,11 @@ public class Project {
     public List<User> getParticipant() {
         return participant;
     }
-    public void setParticipant(User participant) {
+    public void setParticipantun(User participant) {
         this.participant.add(participant);
+    }
+    public void setParticipant(List<User> participant) {
+        this.participant = participant;
     }
     public Message getMessages(int id) {
         return messages.get(id)  ;   
@@ -35,7 +38,10 @@ public class Project {
     public List<Message> getMessages() {
         return messages;    
     }
-    public void setMessages(Message message) {
+    public void setMessagesun(Message message) {
         this.messages.add(message);
+    }
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
     }
 }

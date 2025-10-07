@@ -17,7 +17,7 @@ public class RelationService {
     // ========== USER <-> PROJECT ==========
 
     public List<UserProject> getProjectByUser(long userId) {
-        String sql = "SELECT * FROM public.user_project WHERE user_id = ?";
+        String sql = "SELECT * FROM public.userproject WHERE userid = ?";
         List<UserProject> list = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -28,8 +28,8 @@ public class RelationService {
 
             while (rs.next()) {
                 UserProject up = new UserProject();
-                up.setUser(rs.getLong("user_id"));
-                up.setProject(rs.getLong("project_id"));
+                up.setUser(rs.getLong("userid"));
+                up.setProject(rs.getLong("projectid"));
                 list.add(up);
             }
             rs.close();
@@ -41,7 +41,7 @@ public class RelationService {
     }
 
     public List<UserProject> getUserByProject(long projectId) {
-        String sql = "SELECT * FROM public.user_project WHERE project_id = ?";
+        String sql = "SELECT * FROM public.userproject WHERE projectid = ?";
         List<UserProject> list = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -52,8 +52,8 @@ public class RelationService {
 
             while (rs.next()) {
                 UserProject up = new UserProject();
-                up.setUser(rs.getLong("user_id"));
-                up.setProject(rs.getLong("project_id"));
+                up.setUser(rs.getLong("userid"));
+                up.setProject(rs.getLong("projectid"));
                 list.add(up);
             }
             rs.close();
@@ -65,7 +65,7 @@ public class RelationService {
     }
 
     public boolean setProjectUser(UserProject relation) {
-        String sql = "INSERT INTO public.user_project (user_id, project_id) VALUES (?, ?)";
+        String sql = "INSERT INTO public.userproject (userid, projectid) VALUES (?, ?)";
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -83,6 +83,54 @@ public class RelationService {
         return false;
     }
 
+    public boolean deleteUserProject(long userId, long projectId) {
+        if (userId != 0 && projectId != 0) {
+            String sql = "DELETE FROM public.userproject WHERE userid = ? AND projectid = ?";
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setLong(1, userId);
+                stmt.setLong(2, projectId);
+
+                int rows = stmt.executeUpdate();
+                System.out.println("Deleted relation: " + rows);
+                return rows > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else if (userId != 0) {
+            String sql = "DELETE FROM public.userproject WHERE userid = ?";
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setLong(1, userId);
+
+                int rows = stmt.executeUpdate();
+                System.out.println("Deleted relation: " + rows);
+                return rows > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } else if (projectId != 0) {
+            String sql = "DELETE FROM public.userproject WHERE projectid = ?";
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setLong(1, projectId);
+
+                int rows = stmt.executeUpdate();
+                System.out.println("Deleted relation: " + rows);
+                return rows > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
     // ========== USER <-> MESSAGE ==========
     public boolean deleteUserMessage(long userId, long messageId) {
         if (userId != 0 && messageId != 0) {
@@ -223,7 +271,7 @@ public class RelationService {
     // ========== PROJECT <-> MESSAGE ==========
 
     public List<MessageProject> getMessageByProject(long projectId) {
-        String sql = "SELECT * FROM public.message_project WHERE project_id = ?";
+        String sql = "SELECT * FROM public.messageproject WHERE projectid = ?";
         List<MessageProject> list = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -234,8 +282,8 @@ public class RelationService {
 
             while (rs.next()) {
                 MessageProject mp = new MessageProject();
-                mp.setMessage(rs.getLong("message_id"));
-                mp.setProject(rs.getLong("project_id"));
+                mp.setMessage(rs.getLong("messageid"));
+                mp.setProject(rs.getLong("projectid"));
                 list.add(mp);
             }
 
@@ -248,7 +296,7 @@ public class RelationService {
     }
 
     public List<MessageProject> getProjectByMessage(long messageId) {
-        String sql = "SELECT * FROM public.message_project WHERE message_id = ?";
+        String sql = "SELECT * FROM public.messageproject WHERE messageid = ?";
         List<MessageProject> list = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -273,13 +321,13 @@ public class RelationService {
     }
 
     public boolean setMessageProject(MessageProject relation) {
-        String sql = "INSERT INTO public.message_project (message_id, project_id) VALUES (?, ?)";
+        String sql = "INSERT INTO public.messageproject (projectid,messageid) VALUES (?, ?)";
 
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setLong(1, relation.getMessage());
-            stmt.setLong(2, relation.getProject());
+            stmt.setLong(2, relation.getMessage());
+            stmt.setLong(1, relation.getProject());
 
             int rows = stmt.executeUpdate();
             System.out.println("Inserted relation: " + rows);
@@ -288,6 +336,55 @@ public class RelationService {
             e.printStackTrace();
         }
 
+        return false;
+    }
+
+    public boolean deleteMessageProject(long projectId, long messageId) {
+        if (projectId != 0 && messageId != 0) {
+            String sql = "DELETE FROM public.messageproject WHERE projectid = ? AND messageid = ?";
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setLong(1, projectId);
+                stmt.setLong(2, messageId);
+
+                int rows = stmt.executeUpdate();
+                System.out.println("Deleted relation: " + rows);
+                return rows > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else if (projectId != 0) {
+            String sql = "DELETE FROM public.messageproject WHERE projectid = ?";
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setLong(1, projectId);
+
+                int rows = stmt.executeUpdate();
+                System.out.println("Deleted relation: " + rows);
+                return rows > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } else if (messageId != 0) {
+            String sql = "DELETE FROM public.messageproject WHERE messageid = ?";
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setLong(1, messageId);
+
+                int rows = stmt.executeUpdate();
+                System.out.println("Deleted relation: " + rows);
+                return rows > 0;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
         return false;
     }
 }
