@@ -2,19 +2,15 @@ package com.example.demo.services;
 
 import java.sql.*;
 
-import org.ietf.jgss.MessageProp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.entities.User;
 import com.example.demo.entities.Project;
 import com.example.demo.entities.UserProject;
-import com.example.demo.services.RelationService;
 import com.example.demo.entities.Message;
 import com.example.demo.entities.MessageProject;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {

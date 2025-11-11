@@ -1,7 +1,6 @@
 package com.example.demo.controllers;
 
 import com.example.demo.entities.*;
-import com.example.demo.authenticators.Authenticator;
 
 import java.util.List;
 
@@ -20,8 +19,7 @@ public class ProjectController {
     private ProjectService projectService;
     @Autowired
     private RelationService relationService;
-    @Autowired
-    private Authenticator autenticator;
+    
 
     @GetMapping("/{id}")
     public Project getProject(@PathVariable int id, @RequestHeader("Authorization") String token) {
@@ -48,11 +46,8 @@ public class ProjectController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
         }
 
-        if (true) {
             return project;
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-        }
+  
     }
     @GetMapping("/user/{id}")
     public List<Project> getProjectsByUser(@PathVariable int id, @RequestHeader("Authorization") String token) {
@@ -88,10 +83,7 @@ public class ProjectController {
 
     @DeleteMapping("/{id}")
     public boolean deleteProject(@PathVariable int id, @RequestHeader("Authorization") String token) {
-        if (true) {
-            return projectService.deleteProject(id);
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-        }
+        
+        return projectService.deleteProject(id);
     }
 }

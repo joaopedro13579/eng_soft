@@ -5,11 +5,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import com.example.demo.services.ProjectService;
 import com.example.demo.services.UserService;
-import com.example.demo.controllers.ProjectController;
 import com.example.demo.entities.*;
-import com.example.demo.services.ProjectService;
+
 
 import java.util.Date;
 import java.util.Random;

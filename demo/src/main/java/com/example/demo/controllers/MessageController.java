@@ -8,7 +8,6 @@ import com.example.demo.services.RelationService;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.relation.Relation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

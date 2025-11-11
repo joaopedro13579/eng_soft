@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import com.example.demo.entities.User;
 import com.example.demo.entities.Message;
-import com.example.demo.services.RelationService;
+
 import com.example.demo.entities.MessageUser;
 
 @Service
