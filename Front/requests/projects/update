@@ -1,0 +1,32 @@
+var myHeaders = new Headers();
+myHeaders.append("Content-Type", "application/json");
+myHeaders.append("Authorization", "1757002588886:7:2.16.27.0.17.62");
+
+var raw = JSON.stringify({
+  "description": "teste",
+  "participant": [
+    {
+      "id": 1
+    },
+    {
+      "id": 20
+    }
+  ],
+  "messages": [
+    {
+      "id": 18
+    }
+  ]
+});
+
+var requestOptions = {
+  method: 'PUT',
+  headers: myHeaders,
+  body: raw,
+  redirect: 'follow'
+};
+
+fetch("http://localhost:8080/projects/1", requestOptions)
+  .then(response => response.text())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));

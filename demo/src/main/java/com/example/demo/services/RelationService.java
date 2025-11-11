@@ -181,7 +181,7 @@ public class RelationService {
         return false;
     }
 
-    public List<MessageUser> getMessageByUser(long userId) {
+    public List<MessageUser> getMessageByUser(int userId) {
         String sql = "SELECT * FROM public.usermessage WHERE user_id = ?";
         List<MessageUser> list = new ArrayList<>();
 

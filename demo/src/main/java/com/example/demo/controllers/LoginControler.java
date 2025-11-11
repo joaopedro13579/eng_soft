@@ -30,6 +30,7 @@ public class LoginControler {
         if (rc.equals(db)) {
             String token = autenticator.createKey(key);
             key.setKey(token);
+            key.setId(userService.getUser(user.getUsername()).getId());
             System.out.println(key.getKey());
             return key;
         } else {

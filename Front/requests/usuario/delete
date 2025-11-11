@@ -1,0 +1,21 @@
+var requestOptions = {
+  method: 'DELETE',
+  redirect: 'follow'
+};
+
+fetch("http://localhost:8080/users/5?Authorization=1757005097588:3:50.2.1.14.12.79", requestOptions)
+  .then(response => response.text())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));var myHeaders = new Headers();
+myHeaders.append("Authorization", "1757005097588:3:50.2.1.14.12.79");
+
+var requestOptions = {
+  method: 'DELETE',
+  headers: myHeaders,
+  redirect: 'follow'
+};
+
+fetch("http://localhost:8080/users/by-name/gabriel", requestOptions)
+  .then(response => response.text())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));

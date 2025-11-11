@@ -3,8 +3,12 @@ package com.example.demo.controllers;
 import com.example.demo.entities.*;
 import com.example.demo.authenticators.Authenticator;
 import com.example.demo.services.MessageService;
+import com.example.demo.services.RelationService;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.management.relation.Relation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +25,9 @@ public class MessageController {
     @Autowired
     private Authenticator authenticator;
 
+    @Autowired
+    private RelationService relationservice;
+
     @GetMapping("/{id}")
     public Message getMessage(@PathVariable int id, @RequestHeader("Authorization") String token) {
         try {
@@ -34,7 +41,7 @@ public class MessageController {
     }
 
     @PostMapping("/")
-    public Message createMessage(@RequestBody Message message, @RequestHeader("Auth") String token) {
+    public Message createMessage(@RequestBody Message message, @RequestHeader("Authorization") String token) {
             try {
                 return messageService.createMessage(message);
             } catch (Exception e) {
@@ -80,6 +87,18 @@ public class MessageController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
+    }    @GetMapping("/user/{userId}")
+    public List<Message> getMessagesByUser(@PathVariable int userId, @RequestHeader("Authorization") String token) {
+        try {
+            List<MessageUser> relations = relationservice.getMessageByUser(userId);
+            List<Message> messages = new ArrayList<>();
+            for (MessageUser mu : relations) {
+                // assume MessageUser has getMessageId(); if it has getMessage() adjust accordingly
+                messages.add(messageService.getMessage((mu.getMessageId()).intValue()));
+            }
+            return messages;
+        } catch (Exception e) {
+            throw new RuntimeException("Database error", e);
+        }
     }
-
 }

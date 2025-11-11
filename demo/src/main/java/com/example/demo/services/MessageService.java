@@ -153,26 +153,20 @@ public class MessageService {
             }
             System.out.println("updating participants");
             List<User> participant = content.getParticipant();
+            List<MessageUser> existingRelations = relationService.getUserByMessage(id);
+            for (MessageUser user : existingRelations) {
+                relationService.deleteUserMessage(user.getUserId(), (long)id);
+            }
             MessageUser mu = new MessageUser((long)0,(long)0);
-            List<MessageUser> old=relationService.getUserByMessage(id);
-            boolean flag=false;
             for (User user : participant) {
-                for (MessageUser m : old) {
-                    if (m.getUserId()==user.getId()){
-                        relationService.deleteUserMessage(m.getUserId(),m.getMessageId());
-                        flag=true;
-                    }
+                System.out.println(user.getId());
+                mu.setMessageId((long)id);
+                mu.setUserId(user.getId());
+                try {
+                    relationService.setMessageUser(mu);
+                } catch (Exception e) {
+                    System.out.println(e + "," + mu.getUserId() + "," + mu.getMessageId());
                 }
-                if (!flag){
-                    mu.setMessageId((long)id);
-                    mu.setUserId(user.getId());
-                    try {
-                        relationService.setMessageUser(mu);
-                    } catch (Exception e) {
-                        System.out.println(e + "," + mu.getUserId() + "," + mu.getMessageId());
-                    }
-                }
-                flag=false;
             }
             return true;
         } catch (SQLException e) {
@@ -184,7 +178,7 @@ public class MessageService {
     public boolean updateparticipants(List<MessageUser> participants)
     {
         for (MessageUser messageUser : participants) {
-            if (relationService.getMessageByUser(messageUser.getUserId())==null) {
+            if (relationService.getMessageByUser((messageUser.getUserId()).intValue())==null) {
                 relationService.setMessageUser(messageUser);       
             }else{
                 try{

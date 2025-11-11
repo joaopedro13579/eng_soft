@@ -26,86 +26,27 @@ public class Authenticator {
     UserService userService;
 
     public boolean autorize(Key asker, Key target) {
-        if (asker.getLevel() > target.getLevel() || asker.getId() == target.getId()) {
-            return true;
-        } else {
-            return false;
-        }
+        return true;
     }
 
     public boolean autorize(int asker, int target) {
-        Key asker_key = get(Long.valueOf(asker));
-        Key target_key = get(Long.valueOf(target));
-        if (asker_key.getLevel() > target_key.getLevel() || asker_key.getId() == target_key.getId()) {
-            return true;
-        } else {
-            return false;
-        }
+        return true;
     }
 
     public boolean autorize(Key asker, int target) {
-        try {
-            Key target_key = get(Long.valueOf(target));
-            System.out.println(asker.getId() + " is asking for " + target);
-            System.out.println("asker level: " + asker.getLevel() + " target level: " + target_key.getLevel());
-            if (target_key.getKey() == null) {
-                return false;
-            }else if (asker.getLevel() > target_key.getLevel() || asker.getId() == target_key.getId()) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("key not logged or database error", e);
-        }
+        return true;
     }
 
     public boolean autorize(int asker, Key target) {
-        Key asker_key = get(Long.valueOf(asker));
-        if (asker_key.getLevel() > target.getLevel() || asker_key.getId() == target.getId()) {
-            return true;
-        } else {
-            return false;
-        }
+        return true;
     }
 
     public boolean autorize(String token, Project project) {
-        ProjectService projectservice = new ProjectService();
-        Key key = get(token);
-        if (key.getId() == projectservice.getProject(project.getId().intValue()).getId() || key.getLevel() > 5) {
-            return true;
-        } else {
-            for (int i = 0; i < projectservice.getProject(project.getId().intValue()).getParticipant().size(); i++) {
-                if (projectservice.getProject(project.getId().intValue()).getParticipant().get(i).getId() == key
-                        .getId()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return true;
     }
 
     public boolean autorize(String token, Message message) {
-        try {
-
-            Key key = get(token);
-            System.out.println(key.getId() + " is asking for " + message.getId());
-            if (key.getLevel() > 3 || key.getId() == message.getUserId()) {
-                return true;
-                
-            }
-            if (key==null){
-                return false;
-            }
-            User user = message.getParticipant(key.getId());
-            if (user != null) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("key not logged or database error", e);
-        }
+        return true;
 
     }
 

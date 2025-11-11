@@ -12,8 +12,6 @@
         <p class="switch">Don't have an account?
           <NuxtLink to="/user/signup">Sign Up</NuxtLink>
         </p>
-        <button @click="erro = true">Show Error</button>
-
       </form>
     </div>
   </section>
@@ -29,28 +27,50 @@ import { useUserStore } from '~/stores/user'
 import { useRouter } from 'vue-router'
 
 const Router = useRouter()
-const email = ref('')
+const name = ref('')
 const password = ref('')
 const erro = ref(false)
 const handleSignIn = async () => {
   localStorage.setItem('userId', 1)
   const userStore = useUserStore()
-  userStore.setUserId(1)
-  console.log("Signing in with", email.value, password.value)
-  Router.push('/projects/read')
-  try {
-    // await some API call to validate login
-    const response = await fakeLoginApi(email.value, password.value)
+  console.log("Signing in with", name.value, password.value)
+    let response=await loginUser(name.value, password.value)
+    response=await response.json()
     if (response.success) {
       erro.value = false
+
       // redirect or set user data
     } else {
       erro.value = true
+    
     }
-  } catch (err) {
-    erro.value = true
-  }
+      console.log(response)
+      userStore.setUserId(response.id)
+      Router.push('/projects/read')
+}
+async function loginUser(username, password) {
+  try {
 
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    var raw = JSON.stringify({
+      "username": username,
+      "password": password
+    });
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+    };
+
+    const response=await fetch("http://localhost:8080/login/", requestOptions)
+    return response
+  } catch (err) {
+    console.error('Login API error:', err)
+    throw err
+  }
 }
 </script>
 

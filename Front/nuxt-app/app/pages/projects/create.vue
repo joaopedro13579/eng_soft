@@ -1,70 +1,165 @@
 <template>
-    <Header/>
-  <section class="project-form">
-    <h1>Create Project</h1>
-    <form @submit.prevent="handleSubmit">
-      <input v-model="name" type="text" placeholder="Project Name" required />
-      <textarea v-model="description" placeholder="Project Description"></textarea>
-      <button type="submit">Create</button>
+  <Header />
+
+  <section class="project-view">
+    <h1>Create New Project</h1>
+
+    <form @submit.prevent="createProject">
+      <label for="projectName">Description</label>
+      <input
+        type="text"
+        id="projectName"
+        v-model="project.name"
+        placeholder="Enter project name"
+        required
+      />
+
+      <label for="participantSearch">Add Participants by Name</label>
+      <div class="search-container">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Enter name to fetch ID"
+        />
+        <button type="button" @click="addParticipantByName">Add</button>
+      </div>
+
+      <div v-if="project.participant.length" class="selected-participants">
+        <h4>Participants:</h4>
+        <ul>
+          <li v-for="p in project.participant" :key="p.id">
+            {{ p.username }} (ID: {{ p.id }})
+            <button type="button" @click="removeParticipant(p)">❌</button>
+          </li>
+        </ul>
+      </div>
+
+      <button type="submit">Create Project</button>
     </form>
+
+    <p v-if="status.message" :style="{ color: status.success ? 'green' : 'red' }">
+      {{ status.message }}
+    </p>
   </section>
-  <Footer/>
+
+  <Footer />
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import Footer from '~/components/Footer.vue'
+import { reactive, ref } from 'vue'
 import Header from '~/components/Header.vue'
+import Footer from '~/components/Footer.vue'
 
-const name = ref('')
-const description = ref('')
-const router = useRouter()
+const authToken = "1757002588886:7:2.16.27.0.17.62"
 
-const handleSubmit = async () => {
+const project = reactive({
+  name: '',
+  participant: []
+})
+
+const searchQuery = ref('')
+const status = reactive({ message: '', success: false })
+
+// Fetch user by name and add to participants
+async function addParticipantByName() {
+  if (!searchQuery.value.trim()) return;
+
   try {
-    await fetch('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.value, description: description.value })
-    })
-    router.push('/projects')
+    const res = await fetch(`http://localhost:8080/users/by-name/${searchQuery.value}`, {
+      headers: { 'Authorization': authToken }
+    });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+    const data = await res.json();
+
+    // Handle both single object and array response
+    const users = Array.isArray(data) ? data : [data];
+
+    if (users.length === 0) {
+      status.message = `No users found with name "${searchQuery.value}"`;
+      status.success = false;
+      return;
+    }
+
+    users.forEach(user => {
+      if (!project.participant.find(p => p.id === user.id)) {
+        project.participant.push(user);
+      }
+    });
+
+    searchQuery.value = '';
+    status.message = '';
   } catch (err) {
-    alert('Failed to create project.')
+    console.error(err);
+    status.message = `Error fetching user: ${err.message}`;
+    status.success = false;
+  }
+}
+
+
+function removeParticipant(user) {
+  project.participant = project.participant.filter(p => p.id !== user.id)
+}
+
+async function createProject() {
+  if (!project.name) {
+    status.message = 'Project name is required'
+    status.success = false
+    return
+  }
+  console.log("Creating project:", project)
+  try {
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", "1757002588886:7:2.16.27.0.17.62");
+
+  var raw = JSON.stringify({
+    "id": 1,
+    "description": project.name,
+    "participant": project.participant,
+    "messages": []
+});
+
+var requestOptions = {
+  method: 'POST',
+  headers: myHeaders,
+  body: raw,
+  redirect: 'follow'
+};
+
+fetch("http://localhost:8080/projects/", requestOptions)
+  .then(response => response.text())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));
+  } catch (err) {
     console.error(err)
+    status.message = `Failed to create project: ${err.message}`
+    status.success = false
   }
 }
 </script>
 
 <style scoped>
-.project-form {
+.project-view {
   max-width: 600px;
-  margin: 4rem auto;
+  margin: 2rem auto;
   padding: 2rem;
-  background: #f9f9f9;
-  border-radius: 12px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.project-form h1 {
-  color: #ca59c5;
-  margin-bottom: 1rem;
-}
+h1 { color: #ca59c5; text-align: center; margin-bottom: 1.5rem; }
+label { display: block; margin-top: 1rem; font-weight: bold; }
+input[type="text"] { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+button { margin-top: 1rem; background-color: #ca59c5; color: white; padding: 0.5rem 1rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+button:hover { background-color: #b44fb0; }
 
-.project-form input,
-.project-form textarea {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
+.search-container { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+.search-container input { flex: 1; }
 
-.project-form button {
-  background: #ca59c5;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-}
+.selected-participants ul { list-style: none; padding: 0; }
+.selected-participants li { display: flex; justify-content: space-between; align-items: center; padding: 0.25rem 0; }
+.selected-participants button { background: none; color: red; font-size: 1rem; border: none; cursor: pointer; }
 </style>

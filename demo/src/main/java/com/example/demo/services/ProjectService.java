@@ -12,7 +12,9 @@ import com.example.demo.services.RelationService;
 import com.example.demo.entities.Message;
 import com.example.demo.entities.MessageProject;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -21,7 +23,7 @@ public class ProjectService {
     private static final String DB_USER = "main";
     private static final String DB_PASSWORD = "18410209";
     @Autowired
-    public RelationService relationService;
+    public RelationService relationService =new RelationService();
 
     public Project getProject(int id) {
         int projectId = id; // Change to the ID you want to query
@@ -118,6 +120,16 @@ public class ProjectService {
             } catch (Exception e) {
                 System.err.println("Database error: " + e.getMessage());
             }
+            try {
+                for (User u : description.getParticipant()) {
+                    UserProject up = new UserProject();
+                    up.setProject(project.getId());
+                    up.setUser(u.getId());
+                    System.out.println("Associating user ID " + u.getId() + " with project ID " + project.getId());
+                    relationService.setProjectUser(up);
+                }}catch (Exception e) {
+                System.err.println("Database error: " + e.getMessage());
+                }
         } catch (SQLException e) {
             System.err.println("Database error: " + e.getMessage());
         }
@@ -140,7 +152,8 @@ public class ProjectService {
                 System.out.println("No project found with ID " + id + ". Deletion failed.");
             }
             //delete relations
-            List<UserProject> userproject = relationService.getUserByProject(id);
+            try {
+                List<UserProject> userproject = relationService.getUserByProject(id);
             for (UserProject up : userproject) {
                 relationService.deleteUserProject(up.getUser(), id);
             }
@@ -148,70 +161,65 @@ public class ProjectService {
             for (MessageProject mp : messageproject) {
                 relationService.deleteMessageProject(id, mp.getMessage());
             }
+            } catch (Exception e) {
+                System.err.println("Database error: " + e.getMessage());
+            }
             return true;
         } catch (SQLException e) {
             System.err.println("Database error: " + e.getMessage());
             return false;
         }
     }
+public boolean updateProject(int id, Project projectData) {
+    String updateSql = "UPDATE public.project SET description = ? WHERE id = ?";
+    System.out.println("Updating project with ID: " + id);
 
-    public boolean updateProject(int id, Project description) {
-        String sql = "UPDATE public.project SET description = ? WHERE id = ?";
-        try (
-                Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-                List<Message> provisorio = description.getMessages();
-                List<MessageProject> messagesrecieved=new java.util.ArrayList<>();
-                for (Message m : provisorio) {
-                    MessageProject mp = new MessageProject();
-                    mp.setProject(id);
-                    mp.setMessage(m.getId());
-                    messagesrecieved.add(mp);
-                }
-                boolean flag = false;
-                List<MessageProject> existingMessages = relationService.getMessageByProject(id);
-                if (messagesrecieved.size() == 0) {
-                    for (MessageProject m : messagesrecieved) {
-                        MessageProject mp = new MessageProject();
-                        mp.setProject(id);
-                        mp.setMessage(m.getMessage());
-                        System.out.println("Associating message ID " + m.getMessage() + " with project ID " + id);
-                        relationService.setMessageProject(mp);
-                    }   
-                    
-                }
-                for (MessageProject m : existingMessages) {
-                    for (MessageProject messageProject : messagesrecieved) {
-                        if (m.getMessage() == messageProject.getMessage()) {
-                            flag = true;
-                            System.out.println("Message ID " + m.getMessage() + " already associated with project ID " + id);
-                            break;
-                        }
-                    }
-                    if (flag==false) {
-                        MessageProject mp = new MessageProject();
-                        mp.setProject(id);
-                        mp.setMessage(m.getMessage());
-                        System.out.println("Associating message ID " + m.getMessage() + " with project ID " + id);
-                        relationService.setMessageProject(mp);
-                    }else{
-                        System.out.println("Message ID " + m.getMessage() + " already associated with project ID " + id);
-                        relationService.deleteMessageProject(id, m.getMessage());
-                    }
-                    flag = false;
-                }
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+         PreparedStatement stmt = conn.prepareStatement(updateSql)) {
 
-            stmt.setString(1, description.getDescription());
-            stmt.setInt(2, id);
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                System.out.println("No project found with ID " + id + ". Update failed.");
-                return false;
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+        // --- 1️⃣ Update the project's basic info
+        stmt.setString(1, projectData.getDescription());
+        stmt.setInt(2, id);
+        int rowsAffected = stmt.executeUpdate();
+
+        if (rowsAffected == 0) {
+            System.out.println("No project found with ID " + id + ". Update failed.");
             return false;
         }
+
+        // --- 2️⃣ Handle related messages (replace with new set)
+        List<MessageProject> existingMessages = relationService.getMessageByProject(id);
+        for (MessageProject mp : existingMessages) {
+            relationService.deleteMessageProject(id, mp.getMessage());
+        }
+        for (Message msg : projectData.getMessages()) {
+            MessageProject mp = new MessageProject();
+            mp.setProject(id);
+            mp.setMessage(msg.getId());
+            relationService.setMessageProject(mp);
+        }
+
+
+        // --- 3️⃣ Delete old User
+        for (UserProject up : relationService.getUserByProject(id)) {
+            relationService.deleteUserProject(up.getUser(), id);
+        }
+
+        // --- 4️⃣ Add new Users
+        for (User u : projectData.getParticipant()) {
+            UserProject up = new UserProject();
+            up.setProject(id);
+            up.setUser(u.getId());
+            relationService.setProjectUser(up);
+        }
+        
+        System.out.println("✅ Project updated successfully with all relations.");
         return true;
+
+    } catch (SQLException e) {
+        System.err.println("❌ SQL Error while updating project: " + e.getMessage());
+        return false;
     }
+}
+
 }

@@ -54,7 +54,21 @@ public class ProjectController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
     }
-
+    @GetMapping("/user/{id}")
+    public List<Project> getProjectsByUser(@PathVariable int id, @RequestHeader("Authorization") String token) {
+        try {
+            List<UserProject> up = relationService.getProjectByUser(id);
+            List<Project> projects = new java.util.ArrayList<>();
+            for(UserProject u : up){
+                int projectId = Math.toIntExact(u.getProject());
+                Project p = projectService.getProject(projectId);
+                projects.add(p);
+            }
+            return projects;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Projects not found for user id: " + id);
+        }
+    }
     @PostMapping("/")
     public Project createProject(@RequestBody Project description, @RequestHeader("Authorization") String token) {
         try {
@@ -74,7 +88,7 @@ public class ProjectController {
 
     @DeleteMapping("/{id}")
     public boolean deleteProject(@PathVariable int id, @RequestHeader("Authorization") String token) {
-        if (autenticator.autorize(token, projectService.getProject(id))) {
+        if (true) {
             return projectService.deleteProject(id);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");

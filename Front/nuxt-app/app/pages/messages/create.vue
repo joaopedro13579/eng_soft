@@ -1,133 +1,249 @@
 <template>
   <Header />
 
-  <section class="message-page">
-    <div class="message-card">
-      <h1>Create Message</h1>
+  <section class="message-view">
+    <h1>Create New Message</h1>
 
-      <form @submit.prevent="sendMessage">
-        <label for="recipient">Recipient</label>
-        <select v-model="recipient" id="recipient" required>
-          <option disabled value="">Select a user</option>
-          <option v-for="user in users" :key="user.id" :value="user.name">
-            {{ user.name }}
-          </option>
-        </select>
+    <form @submit.prevent="createMessage">
+      <label for="messageText">Content</label>
+      <textarea
+        id="messageText"
+        v-model="message.text"
+        rows="5"
+        placeholder="Write your message..."
+        required
+      ></textarea>
 
+      <label for="messageType">Type</label>
+      <input
+        type="text"
+        id="messageType"
+        v-model="message.type"
+        placeholder="e.g. historia de usuario"
+        required
+      />
+
+      <label for="participantSearch">Add Participants by Name</label>
+      <div class="search-container">
         <input
-          v-model="title"
           type="text"
-          placeholder="Message Title"
-          required
+          v-model="searchQuery"
+          placeholder="Enter name to fetch ID"
         />
+        <button type="button" @click="addParticipantByName">Add</button>
+      </div>
 
-        <textarea
-          v-model="body"
-          rows="6"
-          placeholder="Write your message..."
-          required
-        ></textarea>
+      <div v-if="message.participant.length" class="selected-participants">
+        <h4>Participants:</h4>
+        <ul>
+          <li v-for="p in message.participant" :key="p.id">
+            {{ p.username || 'User' }} (ID: {{ p.id }})
+            <button type="button" @click="removeParticipant(p)">❌</button>
+          </li>
+        </ul>
+      </div>
 
-        <button type="submit">Send Message</button>
+      <button type="submit">Send Message</button>
+    </form>
 
-        <p v-if="success" class="success-msg">✅ Message sent to {{ recipient }}!</p>
-      </form>
-    </div>
+    <p v-if="status.message" :style="{ color: status.success ? 'green' : 'red' }">
+      {{ status.message }}
+    </p>
   </section>
 
   <Footer />
 </template>
-
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
+import { useUserStore } from '~/stores/user'
 
-// Hardcoded list of users — could be fetched or replaced with a store
-const users = [
-  { id: 1, name: 'Alice Johnson' },
-  { id: 2, name: 'Bob Smith' },
-  { id: 3, name: 'Charlie Davis' }
-]
+const userStore = useUserStore()
+const authToken = '1757002588886:7:2.16.27.0.17.62'
 
-const title = ref('')
-const body = ref('')
-const recipient = ref('')
-const success = ref(false)
+const message = reactive({
+  text: '',
+  type: '',
+  participant: []
+})
 
-const sendMessage = () => {
-  console.log('Message Sent:', {
-    to: recipient.value,
-    title: title.value,
-    body: body.value
+const searchQuery = ref('')
+const status = reactive({ message: '', success: false })
+
+// ✅ Fetch user by name and add to participants
+async function addParticipantByName() {
+  if (!searchQuery.value.trim()) return
+
+  try {
+    const res = await fetch(`http://localhost:8080/users/by-name/${searchQuery.value}`, {
+      headers: { Authorization: authToken }
+    })
+
+    if (!res.ok) throw new Error(`Server returned ${res.status}`)
+
+    const data = await res.json()
+    const users = Array.isArray(data) ? data : [data]
+
+    if (users.length === 0) {
+      status.message = `No users found with name "${searchQuery.value}"`
+      status.success = false
+      return
+    }
+
+    users.forEach(user => {
+      if (!message.participant.find(p => p.id === user.id)) {
+        message.participant.push({ id: user.id, username: user.username })
+      }
+    })
+
+    searchQuery.value = ''
+    status.message = ''
+  } catch (err) {
+    console.error('Error fetching user:', err)
+    status.message = `Error fetching user: ${err.message}`
+    status.success = false
+  }
+}
+
+// ✅ Remove participant
+function removeParticipant(user) {
+  message.participant = message.participant.filter(p => p.id !== user.id)
+}
+
+// ✅ Send message to backend
+async function createMessage() {
+  if (!message.text || !message.type) {
+    status.message = 'Message content and type are required.'
+    status.success = false
+    return
+  }
+
+  try {
+    const userId = userStore.userId || localStorage.getItem('userId')
+    if (!userId) throw new Error('User not logged in')
+
+    const res = await postMessage(userId)
+
+    if (!res.ok) throw new Error(`HTTP ${res.status} - Failed to create message`)
+
+    status.message = '✅ Message sent successfully!'
+    status.success = true
+
+    // reset form
+    message.text = ''
+    message.type = ''
+    message.participant = []
+  } catch (err) {
+    console.error('Error creating message:', err)
+    status.message = `Failed to send message: ${err.message}`
+    status.success = false
+  }
+}
+
+// ✅ Handles the actual API call
+async function postMessage(userId) {
+  const myHeaders = new Headers()
+  myHeaders.append('Content-Type', 'application/json')
+  myHeaders.append('Auth', authToken)
+
+  // 🔥 EXACT JSON format as your working backend expects
+  const raw = JSON.stringify({
+    text: message.text,
+    type: message.type,
+    userId: userId.toString(),
+    projectId: "2",
+    participant: message.participant.map(p => ({ id: p.id }))
   })
 
-  success.value = true
+  console.log("📦 Sending body:", raw)
 
-  setTimeout(() => {
-    title.value = ''
-    body.value = ''
-    recipient.value = ''
-    success.value = false
-  }, 2000)
+  const requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+  }
+
+  const response = await fetch('http://localhost:8080/messages/', requestOptions)
+  return response
 }
 </script>
 
 <style scoped>
-.message-page {
-  display: flex;
-  justify-content: center;
-  padding: 4rem 1rem;
-}
-
-.message-card {
-  background: #f9f9f9;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+.message-view {
   max-width: 600px;
-  width: 100%;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.message-card h1 {
+h1 {
   color: #ca59c5;
-  margin-bottom: 1.5rem;
   text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.message-card form {
-  display: flex;
-  flex-direction: column;
+label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
 }
 
-.message-card select,
-.message-card input,
-.message-card textarea {
+input[type="text"], textarea {
   width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.message-card button {
+button {
+  margin-top: 1rem;
   background-color: #ca59c5;
   color: white;
-  padding: 0.75rem;
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
 }
 
-.message-card button:hover {
-  background-color: #a8459d;
+button:hover {
+  background-color: #b44fb0;
 }
 
-.success-msg {
-  margin-top: 1rem;
-  color: green;
-  font-weight: bold;
-  text-align: center;
+.search-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.search-container input {
+  flex: 1;
+}
+
+.selected-participants ul {
+  list-style: none;
+  padding: 0;
+}
+
+.selected-participants li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.selected-participants button {
+  background: none;
+  color: red;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
 }
 </style>
