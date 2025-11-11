@@ -33,39 +33,28 @@ const erro = ref(false)
 const handleSignIn = async () => {
   localStorage.setItem('userId', 1)
   const userStore = useUserStore()
-  console.log("Signing in with", name.value, password.value)
     let response=await loginUser(name.value, password.value)
     response=await response.json()
-    if (response.success) {
-      erro.value = false
-
-      // redirect or set user data
-    } else {
-      erro.value = true
-    
-    }
       console.log(response)
+      if (response.password==password.value){
       userStore.setUserId(response.id)
       Router.push('/projects/read')
+      }
+
 }
 async function loginUser(username, password) {
   try {
 
     var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    var raw = JSON.stringify({
-      "username": username,
-      "password": password
-    });
+    myHeaders.append("Authorization", "1757005097588:3:50.2.1.14.12.79");
 
     var requestOptions = {
-      method: 'POST',
+      method: 'GET',
       headers: myHeaders,
-      body: raw,
       redirect: 'follow'
     };
 
-    const response=await fetch("http://localhost:8080/login/", requestOptions)
+    const response=await fetch("http://localhost:8080/users/by-name/"+username, requestOptions)
     return response
   } catch (err) {
     console.error('Login API error:', err)

@@ -2,11 +2,9 @@ package com.example.demo.services;
 
 import java.sql.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.example.demo.entities.Key;
 import com.example.demo.entities.User;
-import com.example.demo.controllers.LoginControler;
+
 @Service
 public class UserService {
     // DB connection constants

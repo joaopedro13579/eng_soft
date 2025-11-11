@@ -5,7 +5,7 @@
     <div class="auth-card">
       <h1>Sign Up</h1>
       <form @submit.prevent="handleSignUp">
-        <input type="email" v-model="email" placeholder="Email" required />
+        <input type="text" v-model="nome" placeholder="Name" required />
         <input type="password" v-model="password" placeholder="Password" required />
         <input type="password" v-model="confirmPassword" placeholder="Confirm Password" required />
         <button type="submit">Sign Up</button>
@@ -23,8 +23,10 @@
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const email = ref('')
+const Router = useRouter()
+const nome = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
@@ -34,7 +36,33 @@ const handleSignUp = () => {
     return
   }
   // Replace with real signup logic
-  console.log('Signing up with:', email.value, password.value)
+  console.log('Signing up with:', nome.value, password.value)
+  registerUser(nome, password)
+  Router.forward('/user/signin')
+}
+async function registerUser(nome, password) {
+  try {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "1757005097588:3:50.2.1.14.12.79");
+
+    var raw = JSON.stringify({
+      "username": nome.value,
+      "password": password.value
+    });
+
+    var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+    };
+
+    fetch("http://localhost:8080/users/", requestOptions)
+    Router.push("/user/signin")
+  } catch (error) {
+    console.log('Error registering user:', error)
+  }
 }
 </script>
 
