@@ -50,7 +50,9 @@ import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
 import { reactive, ref, onMounted } from 'vue';
 import { useUserStore } from '~/stores/user'
+import { useRouter } from 'vue-router'
 
+const Router = useRouter()
 const userStore = useUserStore()
 
 const checkout = () => {
